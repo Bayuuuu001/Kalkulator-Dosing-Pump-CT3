@@ -2,138 +2,151 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Kalkulator Dosis Pompa</title>
+<title>Kalkulator Dosis & LPH Pompa</title>
 <style>
     body {
         font-family: Arial, sans-serif;
-        background-color: #f4f8ff;
-        color: #001f3f;
+        background-color: #f4f6fa;
+        margin: 0;
+        padding: 0;
+        color: #002147;
+    }
+    header {
+        background-color: #002147;
+        color: white;
+        padding: 20px;
         text-align: center;
-        padding: 20px;
+        font-size: 24px;
+        font-weight: bold;
     }
-    h1 {
-        color: #001f3f;
-        margin-bottom: 20px;
-    }
-    .card {
+    .container {
+        max-width: 500px;
         background: white;
+        margin: 30px auto;
         padding: 20px;
-        border-radius: 12px;
-        max-width: 400px;
-        margin: auto;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
     label {
+        font-weight: bold;
         display: block;
         margin-top: 15px;
-        font-weight: bold;
-        text-align: left;
     }
-    input, select {
+    select, input {
         width: 100%;
         padding: 10px;
         margin-top: 5px;
         font-size: 16px;
-        border-radius: 8px;
+        border-radius: 5px;
         border: 1px solid #ccc;
     }
-    .btn {
-        padding: 10px 15px;
-        border: none;
-        border-radius: 8px;
-        margin-top: 15px;
+    .buttons {
+        margin-top: 20px;
+        text-align: center;
+    }
+    button {
+        padding: 10px 20px;
         font-size: 16px;
+        border: none;
+        border-radius: 5px;
         cursor: pointer;
-        width: 48%;
+        margin: 5px;
         color: white;
     }
-    .start { background: #0074D9; }
-    .stop { background: #FF4136; }
-    .btn:hover { opacity: 0.9; }
+    .start { background-color: #007bff; }
+    .stop { background-color: #dc3545; }
+    .reset { background-color: #6c757d; }
     .result {
         margin-top: 20px;
-        font-size: 18px;
-        font-weight: bold;
-        background: #e6f0ff;
-        padding: 10px;
+        background: #e9f0ff;
+        padding: 15px;
         border-radius: 8px;
-    }
-    .timer {
-        font-size: 24px;
-        margin-top: 10px;
         font-weight: bold;
     }
 </style>
 </head>
 <body>
 
-<h1>Kalkulator Dosis Pompa</h1>
-<div class="card">
+<header>Kalkulator Dosis Pompa</header>
+
+<div class="container">
     <label for="senyawa">Pilih Senyawa:</label>
     <select id="senyawa">
         <option value="ZP 35">ZP 35</option>
         <option value="Hypo">Hypo</option>
     </select>
 
-    <label for="volume">Volume (ml):</label>
-    <input type="number" id="volume" placeholder="Masukkan volume ml" step="0.01">
+    <label for="volume">Volume Kalibrasi (ml):</label>
+    <input type="number" id="volume" placeholder="Contoh: 100" step="0.01">
 
-    <div class="timer" id="timer">0.00 detik</div>
-    <div>
-        <button class="btn start" onclick="startTimer()">Start</button>
-        <button class="btn stop" onclick="stopTimer()">Stop</button>
+    <div class="buttons">
+        <button class="start" onclick="startTimer()">Start</button>
+        <button class="stop" onclick="stopTimer()">Stop</button>
+        <button class="reset" onclick="resetTimer()">Reset</button>
     </div>
 
-    <div class="result" id="hasil"></div>
+    <div class="result" id="timerDisplay">Waktu: 0.00 detik</div>
+    <div class="result" id="hasil">LPH: -<br>Dosis: -</div>
 </div>
 
 <script>
-let startTime, running = false, elapsed = 0;
+let startTime, running = false, timerInterval;
 
 function startTimer() {
     if (!running) {
         startTime = Date.now();
         running = true;
-        updateTimer();
+        timerInterval = setInterval(updateTimer, 50);
     }
 }
 
 function updateTimer() {
-    if (running) {
-        elapsed = (Date.now() - startTime) / 1000;
-        document.getElementById('timer').innerText = elapsed.toFixed(2) + " detik";
-        requestAnimationFrame(updateTimer);
-    }
+    let elapsed = (Date.now() - startTime) / 1000;
+    document.getElementById('timerDisplay').innerText = `Waktu: ${elapsed.toFixed(2)} detik`;
 }
 
 function stopTimer() {
     if (running) {
+        clearInterval(timerInterval);
         running = false;
-        let waktu = elapsed; // detik
-        let volume = parseFloat(document.getElementById('volume').value);
-        let senyawa = document.getElementById('senyawa').value;
 
-        if (isNaN(volume) || volume <= 0) {
-            document.getElementById('hasil').innerHTML = "Masukkan volume yang valid!";
-            return;
-        }
+        let elapsed = (Date.now() - startTime) / 1000;
+        document.getElementById('timerDisplay').innerText = `Waktu: ${elapsed.toFixed(2)} detik`;
 
-        // Hitung LPH
-        let LPH = (volume / 1000) / (waktu / 3600);
-
-        // Hitung Dosis
-        let dosis;
-        if (senyawa === "ZP 35") {
-            dosis = (LPH * 1000) / 87.1;
-        } else if (senyawa === "Hypo") {
-            dosis = (LPH * 1000) / 25330;
-        }
-
-        document.getElementById('hasil').innerHTML = 
-            `Waktu: ${waktu.toFixed(2)} detik<br>` +
-            `LPH: ${LPH.toFixed(3)} L/h<br>` +
-            `Dosis: ${dosis.toFixed(3)} ppm`;
+        hitungHasil(elapsed);
     }
+}
+
+function resetTimer() {
+    clearInterval(timerInterval);
+    running = false;
+    document.getElementById('timerDisplay').innerText = "Waktu: 0.00 detik";
+    document.getElementById('hasil').innerHTML = "LPH: -<br>Dosis: -";
+}
+
+function hitungHasil(waktuDetik) {
+    let volume = parseFloat(document.getElementById('volume').value);
+    let senyawa = document.getElementById('senyawa').value;
+
+    if (isNaN(volume) || volume <= 0) {
+        document.getElementById('hasil').innerHTML = "Masukkan volume yang benar!";
+        return;
+    }
+
+    // Hitung LPH
+    let LPH = (volume / 1000) / (waktuDetik / 3600);
+
+    // Hitung dosis sesuai senyawa
+    let dosis;
+    if (senyawa === "ZP 35") {
+        dosis = (LPH * 1000 * 0.25) / 87.1;
+    } else if (senyawa === "Hypo") {
+        dosis = (LPH * 1000) / 25330;
+    }
+
+    document.getElementById('hasil').innerHTML = 
+        `LPH: ${LPH.toFixed(3)} L/h<br>` +
+        `Dosis: ${dosis.toFixed(3)} ppm`;
 }
 </script>
 
