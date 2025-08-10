@@ -1,38 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <title>Kalkulator Kalibrasi Pompa</title>
 <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { color: #333; }
-    label { display: block; margin-top: 10px; }
-    input, select, button { padding: 8px; margin-top: 5px; width: 300px; }
-    .result { margin-top: 20px; font-weight: bold; }
-    button { width: 120px; }
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(to right, #00b4db, #0083b0);
+        color: #fff;
+        text-align: center;
+        padding: 20px;
+    }
+    h1 {
+        margin-bottom: 20px;
+        font-size: 28px;
+    }
+    .card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 15px;
+        max-width: 400px;
+        margin: auto;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    label {
+        display: block;
+        margin-top: 15px;
+        font-weight: bold;
+        text-align: left;
+    }
+    input, select {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        margin-top: 5px;
+        font-size: 16px;
+    }
+    button {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 8px;
+        margin: 10px 5px;
+        font-size: 16px;
+        cursor: pointer;
+        color: #fff;
+        background: #ff9800;
+        transition: background 0.3s;
+    }
+    button:hover {
+        background: #e68900;
+    }
+    .result {
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: bold;
+        background: rgba(0,0,0,0.2);
+        padding: 10px;
+        border-radius: 8px;
+    }
 </style>
 </head>
 <body>
 
 <h1>Kalkulator Kalibrasi Pompa</h1>
 
-<label for="senyawa">Pilih Senyawa:</label>
-<select id="senyawa">
-    <option value="ZP 35">ZP 35</option>
-    <option value="Hypo">Hypo</option>
-    <option value="NaOH">NaOH</option>
-</select>
+<div class="card">
+    <label for="senyawa">Pilih Senyawa:</label>
+    <select id="senyawa">
+        <option value="ZP 35">ZP 35</option>
+        <option value="Hypo">Hypo</option>
+        <option value="NaOH">NaOH</option>
+    </select>
 
-<label for="flow_ml">Flow (ml) dari hasil kalibrasi:</label>
-<input type="number" id="flow_ml" placeholder="Misal 100" step="0.01">
+    <label for="flow_ml">Flow (ml) dari hasil kalibrasi:</label>
+    <input type="number" id="flow_ml" placeholder="Misal 100" step="0.01">
 
-<div style="margin-top:15px;">
-    <button onclick="startTimer()">Start</button>
-    <button onclick="stopTimer()">Stop</button>
+    <div style="margin-top:15px;">
+        <button onclick="startTimer()">Start</button>
+        <button onclick="stopTimer()">Stop</button>
+    </div>
+
+    <div class="result" id="timerDisplay">Waktu: 0.00 detik</div>
+    <div class="result" id="hasil"></div>
 </div>
-
-<div class="result" id="timerDisplay">Waktu: 0 detik</div>
-<div class="result" id="hasil"></div>
 
 <script>
 let startTime = 0;
@@ -44,6 +95,7 @@ function startTimer() {
     running = true;
     startTime = Date.now();
     timerInterval = setInterval(updateTimer, 100);
+    document.getElementById('hasil').innerHTML = "";
 }
 
 function stopTimer() {
@@ -70,13 +122,17 @@ function hitung(waktuDetik) {
     // Hitung LPH
     let LPH = (flowMl / 1000) / (waktuDetik / 3600);
 
-    // Hitung dosis (ppm)
-    let dosis = (LPH * 1000) / (24 * 87.1);
+    // Tentukan faktor per senyawa
+    let senyawa = document.getElementById('senyawa').value;
+    let faktor = (senyawa === "Hypo") ? 25330 : 87.1;
+
+    // Hitung dosis sesuai senyawa
+    let dosis = (LPH * 1000) / (24 * faktor);
 
     document.getElementById('hasil').innerHTML = 
-        "Senyawa: " + document.getElementById('senyawa').value + "<br>" +
-        "LPH: " + LPH.toFixed(3) + " L/h<br>" +
-        "Dosis: " + dosis.toFixed(3) + " ppm";
+        `Senyawa: ${senyawa}<br>` +
+        `LPH: ${LPH.toFixed(3)} L/h<br>` +
+        `Dosis: ${dosis.toFixed(6)} ppm`;
 }
 </script>
 
