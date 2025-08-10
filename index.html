@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Kalkulator Flowrate & Kalibrasi Pompa</title>
+<title>Kalkulator Kalibrasi Pompa</title>
 <style>
     body {
         font-family: 'Segoe UI', sans-serif;
@@ -69,31 +69,11 @@
 </head>
 <body>
 
-<h1>Kalkulator Flowrate & Kalibrasi Pompa</h1>
+<h1>Kalkulator Kalibrasi Pompa</h1>
 
-<!-- Mode 1: Hitung Flowrate dari Dosis -->
 <div class="card">
-    <h2>Mode 1: Hitung Flowrate dari Dosis</h2>
-    <label for="senyawa1">Pilih Senyawa:</label>
-    <select id="senyawa1">
-        <option value="ZP 35">ZP 35</option>
-        <option value="Hypo">Hypo</option>
-        <option value="NaOH">NaOH</option>
-    </select>
-
-    <label for="dosis">Dosis (ppm):</label>
-    <input type="number" id="dosis" placeholder="Masukkan dosis ppm" step="0.01">
-
-    <button onclick="hitungFlowrate()">Hitung Flowrate</button>
-
-    <div class="result" id="hasil1"></div>
-</div>
-
-<!-- Mode 2: Kalibrasi Pompa dengan Stopwatch -->
-<div class="card">
-    <h2>Mode 2: Kalibrasi Pompa (Stopwatch)</h2>
-    <label for="senyawa2">Pilih Senyawa:</label>
-    <select id="senyawa2">
+    <label for="senyawa">Pilih Senyawa:</label>
+    <select id="senyawa">
         <option value="ZP 35">ZP 35</option>
         <option value="Hypo">Hypo</option>
         <option value="NaOH">NaOH</option>
@@ -108,7 +88,7 @@
     </div>
 
     <div class="result" id="timerDisplay">Waktu: 0.00 detik</div>
-    <div class="result" id="hasil2"></div>
+    <div class="result" id="hasil"></div>
 </div>
 
 <script>
@@ -116,64 +96,4 @@ let startTime = 0;
 let running = false;
 let timerInterval;
 
-function hitungFlowrate() {
-    let dosis = parseFloat(document.getElementById('dosis').value);
-    let senyawa = document.getElementById('senyawa1').value;
-
-    if (isNaN(dosis) || dosis <= 0) {
-        document.getElementById('hasil1').innerText = "Masukkan dosis yang benar!";
-        return;
-    }
-
-    let faktor = (senyawa === "Hypo") ? 25330 : 87.1;
-    let flowrate = (dosis * 24 * faktor) / 1000;
-
-    document.getElementById('hasil1').innerHTML = 
-        `Senyawa: ${senyawa}<br>` +
-        `Flowrate: ${flowrate.toFixed(3)} L/h`;
-}
-
 function startTimer() {
-    if (running) return;
-    running = true;
-    startTime = Date.now();
-    timerInterval = setInterval(updateTimer, 100);
-    document.getElementById('hasil2').innerHTML = "";
-}
-
-function stopTimer() {
-    if (!running) return;
-    running = false;
-    clearInterval(timerInterval);
-    let elapsedSeconds = (Date.now() - startTime) / 1000;
-    document.getElementById('timerDisplay').innerText = "Waktu: " + elapsedSeconds.toFixed(2) + " detik";
-    hitungDariKalibrasi(elapsedSeconds);
-}
-
-function updateTimer() {
-    let elapsedSeconds = (Date.now() - startTime) / 1000;
-    document.getElementById('timerDisplay').innerText = "Waktu: " + elapsedSeconds.toFixed(2) + " detik";
-}
-
-function hitungDariKalibrasi(waktuDetik) {
-    let flowMl = parseFloat(document.getElementById('flow_ml').value);
-    let senyawa = document.getElementById('senyawa2').value;
-
-    if (isNaN(flowMl) || flowMl <= 0) {
-        document.getElementById('hasil2').innerText = "Masukkan flow (ml) yang benar!";
-        return;
-    }
-
-    let LPH = (flowMl / 1000) / (waktuDetik / 3600);
-    let faktor = (senyawa === "Hypo") ? 25330 : 87.1;
-    let dosis = (LPH * 1000) / (24 * faktor);
-
-    document.getElementById('hasil2').innerHTML = 
-        `Senyawa: ${senyawa}<br>` +
-        `LPH: ${LPH.toFixed(3)} L/h<br>` +
-        `Dosis: ${dosis.toFixed(6)} ppm`;
-}
-</script>
-
-</body>
-</html>
