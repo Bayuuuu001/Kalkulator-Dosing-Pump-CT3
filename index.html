@@ -2,11 +2,11 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Kalkulator Kalibrasi Pompa</title>
+<title>Kalkulator Flowrate Pompa</title>
 <style>
     body {
         font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(to right, #00b4db, #0083b0);
+        background: linear-gradient(to right, #4facfe, #00f2fe);
         color: #fff;
         text-align: center;
         padding: 20px;
@@ -14,9 +14,10 @@
     h1 {
         margin-bottom: 20px;
         font-size: 28px;
+        font-weight: bold;
     }
     .card {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.15);
         padding: 20px;
         border-radius: 15px;
         max-width: 400px;
@@ -41,12 +42,13 @@
         padding: 10px 15px;
         border: none;
         border-radius: 8px;
-        margin: 10px 5px;
+        margin-top: 15px;
         font-size: 16px;
         cursor: pointer;
         color: #fff;
         background: #ff9800;
         transition: background 0.3s;
+        width: 100%;
     }
     button:hover {
         background: #e68900;
@@ -63,7 +65,7 @@
 </head>
 <body>
 
-<h1>Kalkulator Kalibrasi Pompa</h1>
+<h1>Kalkulator Flowrate Pompa</h1>
 
 <div class="card">
     <label for="senyawa">Pilih Senyawa:</label>
@@ -73,66 +75,37 @@
         <option value="NaOH">NaOH</option>
     </select>
 
-    <label for="flow_ml">Flow (ml) dari hasil kalibrasi:</label>
-    <input type="number" id="flow_ml" placeholder="Misal 100" step="0.01">
+    <label for="dosis">Dosis (ppm):</label>
+    <input type="number" id="dosis" placeholder="Masukkan dosis ppm" step="0.01">
 
-    <div style="margin-top:15px;">
-        <button onclick="startTimer()">Start</button>
-        <button onclick="stopTimer()">Stop</button>
-    </div>
+    <button onclick="hitungFlowrate()">Hitung Flowrate</button>
 
-    <div class="result" id="timerDisplay">Waktu: 0.00 detik</div>
     <div class="result" id="hasil"></div>
 </div>
 
 <script>
-let startTime = 0;
-let running = false;
-let timerInterval;
+function hitungFlowrate() {
+    let dosis = parseFloat(document.getElementById('dosis').value);
+    let senyawa = document.getElementById('senyawa').value;
 
-function startTimer() {
-    if (running) return;
-    running = true;
-    startTime = Date.now();
-    timerInterval = setInterval(updateTimer, 100);
-    document.getElementById('hasil').innerHTML = "";
-}
-
-function stopTimer() {
-    if (!running) return;
-    running = false;
-    clearInterval(timerInterval);
-    let elapsedSeconds = (Date.now() - startTime) / 1000;
-    document.getElementById('timerDisplay').innerText = "Waktu: " + elapsedSeconds.toFixed(2) + " detik";
-    hitung(elapsedSeconds);
-}
-
-function updateTimer() {
-    let elapsedSeconds = (Date.now() - startTime) / 1000;
-    document.getElementById('timerDisplay').innerText = "Waktu: " + elapsedSeconds.toFixed(2) + " detik";
-}
-
-function hitung(waktuDetik) {
-    let flowMl = parseFloat(document.getElementById('flow_ml').value);
-    if (isNaN(flowMl) || flowMl <= 0) {
-        document.getElementById('hasil').innerText = "Masukkan flow (ml) yang benar!";
+    if (isNaN(dosis) || dosis <= 0) {
+        document.getElementById('hasil').innerText = "Masukkan dosis yang benar!";
         return;
     }
 
-    // Hitung LPH
-    let LPH = (flowMl / 1000) / (waktuDetik / 3600);
+    let faktor;
+    if (senyawa === "Hypo") {
+        faktor = 25330;
+    } else { 
+        // ZP 35 dan NaOH sama
+        faktor = 87.1;
+    }
 
-    // Tentukan faktor per senyawa
-    let senyawa = document.getElementById('senyawa').value;
-    let faktor = (senyawa === "Hypo") ? 25330 : 87.1;
-
-    // Hitung dosis sesuai senyawa
-    let dosis = (LPH * 1000) / (24 * faktor);
+    let flowrate = (dosis * 24 * faktor) / 1000;
 
     document.getElementById('hasil').innerHTML = 
         `Senyawa: ${senyawa}<br>` +
-        `LPH: ${LPH.toFixed(3)} L/h<br>` +
-        `Dosis: ${dosis.toFixed(6)} ppm`;
+        `Flowrate: ${flowrate.toFixed(3)} L/h`;
 }
 </script>
 
