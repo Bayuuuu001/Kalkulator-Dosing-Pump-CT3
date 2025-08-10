@@ -9,33 +9,37 @@
         color: #003366;
         text-align: center;
         padding: 20px;
-        margin: 0;
-        background: #ffffff url('logo-lautanair.png') no-repeat center center fixed;
+        position: relative;
+        background-color: #ffffff;
+        overflow-x: hidden;
+    }
+
+    /* Background logo dengan opacity rendah */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: url('logo-lautanair.png') center center no-repeat;
         background-size: 300px;
-        background-blend-mode: lighten;
-        opacity: 0.95;
+        opacity: 0.08; /* atur tingkat transparansi */
+        z-index: -1;
     }
-    header {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-bottom: 20px;
+
+    h1 {
+        color: #003366;
+        margin-top: 10px;
     }
-    header img {
-        width: 120px;
-        height: auto;
+    .logo {
+        width: 150px;
         margin-bottom: 10px;
     }
-    h1 {
-        margin: 0;
-        color: #003366;
-    }
     .card {
-        background: rgba(240, 244, 248, 0.95);
+        background: #f0f4f8;
         padding: 20px;
         border-radius: 12px;
-        max-width: 420px;
-        margin: 20px auto;
+        max-width: 400px;
+        margin: auto;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     label {
@@ -86,13 +90,11 @@
 </head>
 <body>
 
-<header>
-    <img src="logo-lautanair.png" alt="Logo Lautan Air Indonesia">
-    <h1>Kalkulator Dosis & LPH Pompa</h1>
-</header>
+<!-- Logo Perusahaan -->
+<img src="logo-lautanair.png" alt="Logo Lautan Air Indonesia" class="logo">
+<h1>Kalkulator Dosis & LPH Pompa</h1>
 
 <div class="card">
-    <h2>Perhitungan Dosis (ZP 35, Hypo, NaOH)</h2>
     <label for="senyawa">Pilih Senyawa:</label>
     <select id="senyawa">
         <option value="ZP 35">ZP 35</option>
@@ -111,9 +113,9 @@
     <div class="result" id="hasil"></div>
 </div>
 
-<div class="card">
-    <h2>Perhitungan Top Up ZP 35</h2>
-    <label for="levelSisa">Level Sisa (liter):</label>
+<div class="card" style="margin-top:20px;">
+    <h2>Top Up ZP 35</h2>
+    <label for="levelSisa">Level Sisa (kg):</label>
     <input type="number" id="levelSisa" placeholder="Masukkan level sisa" step="0.01">
     <button onclick="hitungTopUp()">Hitung Top Up</button>
     <div class="result" id="hasilTopUp"></div>
@@ -154,16 +156,17 @@ function updateTimer() {
 
 function hitungHasil() {
     let waktuDetik = elapsed / 1000;
-    let senyawa = document.getElementById("senyawa").value;
     let volumeMl = parseFloat(document.getElementById("volume").value);
+    let senyawa = document.getElementById("senyawa").value;
 
     if (isNaN(volumeMl) || volumeMl <= 0) {
         document.getElementById("hasil").innerText = "Masukkan volume yang benar!";
         return;
     }
 
+    // Hitung LPH sesuai rumus baru
     let LPH = (volumeMl / waktuDetik) * 3.6;
-    let dosis;
+    let dosis = 0;
 
     if (senyawa === "ZP 35") {
         dosis = (LPH * 1000 * 0.25) / 87.1;
@@ -173,7 +176,7 @@ function hitungHasil() {
         dosis = (LPH * 1000) / 87.1;
     }
 
-    document.getElementById("hasil").innerHTML = 
+    document.getElementById("hasil").innerHTML =
         `Waktu: ${waktuDetik.toFixed(2)} detik<br>` +
         `LPH: ${LPH.toFixed(3)} L/h<br>` +
         `Dosis: ${dosis.toFixed(3)} ppm`;
@@ -181,12 +184,12 @@ function hitungHasil() {
 
 function hitungTopUp() {
     let levelSisa = parseFloat(document.getElementById("levelSisa").value);
-    if (isNaN(levelSisa) || levelSisa < 0 || levelSisa > 1000) {
+    if (isNaN(levelSisa) || levelSisa < 0) {
         document.getElementById("hasilTopUp").innerText = "Masukkan level sisa yang benar!";
         return;
     }
     let topUp = (1000 - levelSisa) * 0.25;
-    document.getElementById("hasilTopUp").innerText = `Top Up ZP 35: ${topUp.toFixed(3)} kg`;
+    document.getElementById("hasilTopUp").innerHTML = `Top Up ZP 35: ${topUp.toFixed(3)} kg`;
 }
 </script>
 
