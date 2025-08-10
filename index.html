@@ -97,3 +97,49 @@ let running = false;
 let timerInterval;
 
 function startTimer() {
+    if (running) return;
+    running = true;
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 100);
+    document.getElementById('hasil').innerHTML = "";
+}
+
+function stopTimer() {
+    if (!running) return;
+    running = false;
+    clearInterval(timerInterval);
+    let elapsedSeconds = (Date.now() - startTime) / 1000;
+    document.getElementById('timerDisplay').innerText = "Waktu: " + elapsedSeconds.toFixed(2) + " detik";
+    hitungLPHdanDosis(elapsedSeconds);
+}
+
+function updateTimer() {
+    let elapsedSeconds = (Date.now() - startTime) / 1000;
+    document.getElementById('timerDisplay').innerText = "Waktu: " + elapsedSeconds.toFixed(2) + " detik";
+}
+
+function hitungLPHdanDosis(waktuDetik) {
+    let flowMl = parseFloat(document.getElementById('flow_ml').value);
+    let senyawa = document.getElementById('senyawa').value;
+
+    if (isNaN(flowMl) || flowMl <= 0) {
+        document.getElementById('hasil').innerText = "Masukkan flow (ml) yang benar!";
+        return;
+    }
+
+    // Hitung LPH
+    let LPH = (flowMl / 1000) / (waktuDetik / 3600);
+
+    // Hitung dosis sesuai senyawa
+    let faktor = (senyawa === "Hypo") ? 25330 : 87.1;
+    let dosis = (LPH * 1000) / (24 * faktor);
+
+    document.getElementById('hasil').innerHTML = 
+        `Senyawa: ${senyawa}<br>` +
+        `LPH: ${LPH.toFixed(3)} L/h<br>` +
+        `Dosis: ${dosis.toFixed(6)} ppm`;
+}
+</script>
+
+</body>
+</html>
