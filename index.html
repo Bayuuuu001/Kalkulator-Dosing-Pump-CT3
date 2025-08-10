@@ -2,67 +2,67 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Kalkulator Dosis Pompa</title>
+<title>Kalkulator Dosis Kalibrasi Pompa</title>
 <style>
     body {
         font-family: Arial, sans-serif;
-        background-color: #ffffff;
-        color: #002b5b;
+        background: linear-gradient(to bottom, #0a3d62, #ffffff);
+        color: #0a3d62;
         text-align: center;
         padding: 20px;
     }
     h1 {
-        font-size: 26px;
-        margin-bottom: 10px;
+        color: #0a3d62;
     }
     .card {
-        background-color: #f0f6ff;
-        border-radius: 12px;
+        background: #ffffff;
         padding: 20px;
+        border-radius: 10px;
         max-width: 400px;
         margin: auto;
-        box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     label {
         display: block;
         margin-top: 15px;
-        text-align: left;
         font-weight: bold;
+        text-align: left;
+        color: #0a3d62;
     }
-    select, input {
+    input, select {
         width: 100%;
-        padding: 8px;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        margin-top: 5px;
-        font-size: 16px;
-    }
-    .btn {
         padding: 10px;
-        margin-top: 15px;
-        font-size: 16px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        width: 48%;
-        color: white;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
     }
-    .start { background-color: #007bff; }
-    .stop { background-color: #dc3545; }
-    .btn:hover { opacity: 0.9; }
+    button {
+        padding: 10px;
+        margin: 10px 5px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        color: white;
+        cursor: pointer;
+    }
+    .start {
+        background-color: #27ae60;
+    }
+    .stop {
+        background-color: #c0392b;
+    }
     .result {
         margin-top: 20px;
-        background-color: #e6f0ff;
+        background: #ecf0f1;
         padding: 10px;
-        border-radius: 6px;
+        border-radius: 5px;
         font-weight: bold;
-        font-size: 18px;
     }
 </style>
 </head>
 <body>
 
-<h1>Kalkulator Dosis Pompa</h1>
+<h1>Kalkulator Dosis Kalibrasi Pompa</h1>
 
 <div class="card">
     <label for="senyawa">Pilih Senyawa:</label>
@@ -71,17 +71,16 @@
         <option value="Hypo">Hypo</option>
     </select>
 
-    <label for="volume">Volume yang diukur (ml):</label>
-    <input type="number" id="volume" placeholder="Masukkan volume ml" step="0.01">
+    <label for="volume">Volume (ml):</label>
+    <input type="number" id="volume" placeholder="Masukkan volume dalam ml" min="1">
 
     <div style="margin-top:15px;">
-        <button class="btn start" onclick="startTimer()">Start</button>
-        <button class="btn stop" onclick="stopTimer()">Stop</button>
+        <button class="start" onclick="startTimer()">Mulai</button>
+        <button class="stop" onclick="stopTimer()">Stop</button>
     </div>
 
-    <div id="timerDisplay" style="margin-top:10px;font-size:18px;">Waktu: 0.00 detik</div>
-
-    <div class="result" id="hasil">Hasil akan muncul di sini</div>
+    <div class="result" id="timerDisplay">Waktu: 0.00 detik</div>
+    <div class="result" id="hasil"></div>
 </div>
 
 <script>
@@ -89,32 +88,37 @@ let startTime, running = false;
 
 function startTimer() {
     if (!running) {
-        running = true;
         startTime = Date.now();
-        document.getElementById('hasil').innerText = "Sedang mengukur...";
-        document.getElementById('timerDisplay').innerText = "Waktu: 0.00 detik";
+        running = true;
+        document.getElementById("hasil").innerHTML = "";
+        updateTimer();
+    }
+}
+
+function updateTimer() {
+    if (running) {
+        let elapsed = (Date.now() - startTime) / 1000;
+        document.getElementById("timerDisplay").innerText = `Waktu: ${elapsed.toFixed(2)} detik`;
+        requestAnimationFrame(updateTimer);
     }
 }
 
 function stopTimer() {
     if (running) {
         running = false;
-        let endTime = Date.now();
-        let elapsed = (endTime - startTime) / 1000; // detik
-        document.getElementById('timerDisplay').innerText = `Waktu: ${elapsed.toFixed(2)} detik`;
-
-        let volume = parseFloat(document.getElementById('volume').value);
-        let senyawa = document.getElementById('senyawa').value;
+        let waktuDetik = (Date.now() - startTime) / 1000;
+        let volume = parseFloat(document.getElementById("volume").value);
+        let senyawa = document.getElementById("senyawa").value;
 
         if (isNaN(volume) || volume <= 0) {
-            document.getElementById('hasil').innerText = "Masukkan volume yang valid!";
+            document.getElementById("hasil").innerText = "Masukkan volume yang benar!";
             return;
         }
 
         // Hitung LPH
-        let LPH = (volume / elapsed) * 3.6; 
+        let LPH = (volume / waktuDetik) * 3.6;
 
-        // Hitung dosis sesuai senyawa
+        // Hitung dosis
         let dosis;
         if (senyawa === "ZP 35") {
             dosis = (LPH * 1000 * 0.25) / 87.1;
@@ -122,10 +126,9 @@ function stopTimer() {
             dosis = (LPH * 1000) / 25330;
         }
 
-        document.getElementById('hasil').innerHTML = 
-            `Senyawa: ${senyawa}<br>` +
+        document.getElementById("hasil").innerHTML = 
             `LPH: ${LPH.toFixed(3)} L/h<br>` +
-            `Dosis: ${dosis.toFixed(3)} ppm`;
+            `Dosis (${senyawa}): ${dosis.toFixed(3)} ppm`;
     }
 }
 </script>
