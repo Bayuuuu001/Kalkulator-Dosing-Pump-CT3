@@ -2,142 +2,175 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Kalkulator Kalibrasi Pompa</title>
+<title>Kalkulator Dosis & Flowrate Pompa</title>
 <style>
     body {
-        font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(to right, #4facfe, #00f2fe);
-        color: #fff;
-        text-align: center;
-        padding: 20px;
+        font-family: Arial, sans-serif;
+        background-color: #ffffff;
+        color: #0d1b2a;
+        margin: 0;
+        padding: 0;
     }
-    h1 {
-        margin-bottom: 20px;
-        font-size: 28px;
-        font-weight: bold;
+    header {
+        background-color: #0d1b2a;
+        color: white;
+        padding: 15px;
+        text-align: center;
+    }
+    main {
+        padding: 20px;
+        max-width: 600px;
+        margin: auto;
     }
     .card {
-        background: rgba(255, 255, 255, 0.15);
+        background: #f4f6f8;
         padding: 20px;
-        border-radius: 15px;
-        max-width: 450px;
-        margin: 20px auto;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.1);
     }
     label {
         display: block;
-        margin-top: 15px;
+        margin-top: 10px;
         font-weight: bold;
-        text-align: left;
     }
     input, select {
         width: 100%;
-        padding: 10px;
-        border: none;
-        border-radius: 8px;
+        padding: 8px;
         margin-top: 5px;
-        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
     }
     button {
-        padding: 10px 15px;
+        background-color: #0077b6;
+        color: white;
         border: none;
-        border-radius: 8px;
+        padding: 10px;
         margin-top: 15px;
-        font-size: 16px;
+        width: 100%;
+        border-radius: 5px;
         cursor: pointer;
-        color: #fff;
-        background: #ff9800;
-        transition: background 0.3s;
-        width: 48%;
+        font-size: 16px;
     }
     button:hover {
-        background: #e68900;
-    }
-    .btn-row {
-        display: flex;
-        justify-content: space-between;
+        background-color: #023e8a;
     }
     .result {
-        margin-top: 20px;
-        font-size: 18px;
-        font-weight: bold;
-        background: rgba(0,0,0,0.2);
+        margin-top: 15px;
+        background: #e0f7fa;
         padding: 10px;
-        border-radius: 8px;
+        border-radius: 5px;
+        font-weight: bold;
     }
 </style>
 </head>
 <body>
 
-<h1>Kalkulator Kalibrasi Pompa</h1>
+<header>
+    <h1>Kalkulator Dosis & Flowrate Pompa</h1>
+</header>
 
-<div class="card">
-    <label for="senyawa">Pilih Senyawa:</label>
-    <select id="senyawa">
-        <option value="ZP 35">ZP 35</option>
-        <option value="Hypo">Hypo</option>
-        <option value="NaOH">NaOH</option>
-    </select>
+<main>
+    <!-- Kalkulator dari Dosis ke Flowrate -->
+    <div class="card">
+        <h2>Hitung Flowrate dari Dosis</h2>
+        <label for="senyawa1">Pilih Senyawa:</label>
+        <select id="senyawa1">
+            <option value="ZP">ZP 35</option>
+            <option value="Hypo">Hypo</option>
+        </select>
 
-    <label for="flow_ml">Flow (ml) dari hasil kalibrasi:</label>
-    <input type="number" id="flow_ml" placeholder="Misal 100" step="0.01">
+        <label for="dosisInput">Dosis (ppm):</label>
+        <input type="number" id="dosisInput" placeholder="Masukkan dosis" step="0.01">
 
-    <div class="btn-row">
-        <button onclick="startTimer()">Start</button>
-        <button onclick="stopTimer()">Stop</button>
+        <button onclick="hitungFlowrateDariDosis()">Hitung Flowrate</button>
+
+        <div class="result" id="hasilFlowrate"></div>
     </div>
 
-    <div class="result" id="timerDisplay">Waktu: 0.00 detik</div>
-    <div class="result" id="hasil"></div>
-</div>
+    <!-- Kalkulator Stopwatch -->
+    <div class="card">
+        <h2>Kalibrasi Pompa (Stopwatch)</h2>
+        <label for="senyawa2">Pilih Senyawa:</label>
+        <select id="senyawa2">
+            <option value="ZP">ZP 35</option>
+            <option value="Hypo">Hypo</option>
+        </select>
+
+        <label for="volumeInput">Volume (ml):</label>
+        <input type="number" id="volumeInput" placeholder="Misal 100" step="0.01">
+
+        <div style="text-align:center; margin-top:15px;">
+            <button onclick="startStopwatch()">Start</button>
+            <button onclick="stopStopwatch()">Stop</button>
+            <button onclick="resetStopwatch()">Reset</button>
+        </div>
+        <div class="result" id="stopwatchDisplay">0.00 detik</div>
+
+        <button onclick="hitungDariStopwatch()">Hitung L/h & Dosis</button>
+
+        <div class="result" id="hasilStopwatch"></div>
+    </div>
+</main>
 
 <script>
-let startTime = 0;
-let running = false;
 let timerInterval;
+let startTime;
 
-function startTimer() {
-    if (running) return;
-    running = true;
-    startTime = Date.now();
-    timerInterval = setInterval(updateTimer, 100);
-    document.getElementById('hasil').innerHTML = "";
-}
+function hitungFlowrateDariDosis() {
+    let dosis = parseFloat(document.getElementById('dosisInput').value);
+    let senyawa = document.getElementById('senyawa1').value;
 
-function stopTimer() {
-    if (!running) return;
-    running = false;
-    clearInterval(timerInterval);
-    let elapsedSeconds = (Date.now() - startTime) / 1000;
-    document.getElementById('timerDisplay').innerText = "Waktu: " + elapsedSeconds.toFixed(2) + " detik";
-    hitungLPHdanDosis(elapsedSeconds);
-}
-
-function updateTimer() {
-    let elapsedSeconds = (Date.now() - startTime) / 1000;
-    document.getElementById('timerDisplay').innerText = "Waktu: " + elapsedSeconds.toFixed(2) + " detik";
-}
-
-function hitungLPHdanDosis(waktuDetik) {
-    let flowMl = parseFloat(document.getElementById('flow_ml').value);
-    let senyawa = document.getElementById('senyawa').value;
-
-    if (isNaN(flowMl) || flowMl <= 0) {
-        document.getElementById('hasil').innerText = "Masukkan flow (ml) yang benar!";
+    if (isNaN(dosis) || dosis <= 0) {
+        document.getElementById('hasilFlowrate').innerText = "Masukkan dosis yang benar!";
         return;
     }
 
-    // Hitung LPH
-    let LPH = (flowMl / 1000) / (waktuDetik / 3600);
+    let faktor = (senyawa === "ZP") ? 87.1 : 25330;
+    let flowrate = (dosis * 24 * faktor) / 1000;
 
-    // Hitung dosis sesuai senyawa
-    let faktor = (senyawa === "Hypo") ? 25330 : 87.1;
+    document.getElementById('hasilFlowrate').innerHTML =
+        `Flowrate: ${flowrate.toFixed(3)} L/h`;
+}
+
+// Stopwatch
+function startStopwatch() {
+    startTime = Date.now();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        let elapsed = (Date.now() - startTime) / 1000;
+        document.getElementById('stopwatchDisplay').innerText = elapsed.toFixed(2) + " detik";
+    }, 10);
+}
+
+function stopStopwatch() {
+    clearInterval(timerInterval);
+}
+
+function resetStopwatch() {
+    clearInterval(timerInterval);
+    document.getElementById('stopwatchDisplay').innerText = "0.00 detik";
+}
+
+function hitungDariStopwatch() {
+    let waktu = parseFloat(document.getElementById('stopwatchDisplay').innerText);
+    let volume = parseFloat(document.getElementById('volumeInput').value);
+    let senyawa = document.getElementById('senyawa2').value;
+
+    if (isNaN(waktu) || waktu <= 0 || isNaN(volume) || volume <= 0) {
+        document.getElementById('hasilStopwatch').innerText = "Isi volume dan waktu yang valid!";
+        return;
+    }
+
+    // Hitung LPH dari kalibrasi
+    let LPH = (volume / 1000) / (waktu / 3600);
+
+    // Hitung dosis berdasarkan LPH
+    let faktor = (senyawa === "ZP") ? 87.1 : 25330;
     let dosis = (LPH * 1000) / (24 * faktor);
 
-    document.getElementById('hasil').innerHTML = 
-        `Senyawa: ${senyawa}<br>` +
-        `LPH: ${LPH.toFixed(3)} L/h<br>` +
-        `Dosis: ${dosis.toFixed(6)} ppm`;
+    document.getElementById('hasilStopwatch').innerHTML =
+        `Flowrate: ${LPH.toFixed(3)} L/h<br>Dosis: ${dosis.toFixed(3)} ppm`;
 }
 </script>
 
